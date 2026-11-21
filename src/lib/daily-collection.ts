@@ -4,11 +4,13 @@ import { adminDb } from '@/lib/firebase-admin';
 import { yt, saveStats, dayUTC } from '@/lib/monitor';
 import { buildRanking } from '@/lib/monitor-ranking';
 
-// One request is deliberately bounded. Press "Continuar" again when needed.
+// Tenta concluir a coleta diária em uma única invocação, respeitando o
+// limite de 60 segundos configurado na rota da Vercel.
+// Se o tempo terminar, o cursor fica salvo para uma retomada posterior.
 const PAGE_SIZE = 50;
-const MAX_PAGES = 5;
-const MAX_YOUTUBE_CALLS = 5;
-const TIME_BUDGET_MS = 38_000;
+const MAX_PAGES = 60;
+const MAX_YOUTUBE_CALLS = 60;
+const TIME_BUDGET_MS = 45_000;
 const LEASE_MS = 110_000;
 
 type JobState = {
@@ -45,6 +47,7 @@ export async function runDailyCollection(): Promise<CollectResult> {
   const today = dayUTC();
   const owner = randomUUID();
   const started = Date.now();
+  console.info('[DAILY COLLECT] Início', { date: today });
 
   const initial = await db.runTransaction(async tx => {
     const snap = await tx.get(jobRef);
@@ -144,12 +147,19 @@ export async function runDailyCollection(): Promise<CollectResult> {
         await checkpoint();
       }
     }
+    console.info('[DAILY COLLECT] Resultado', {
+      date: today, completed, scanned, updated, youtubeCalls,
+      totalScanned, totalUpdated, nextChannel, hasCursor: Boolean(nextCursor),
+    });
     return {
       completed, date: today, scanned, updated, youtubeCalls,
       nextChannel, nextCursor, totalScanned, totalUpdated,
-      message: completed ? 'Coleta diária concluída.' : 'Lote finalizado. Continue pela Central de Operações para processar o restante.',
+      message: completed
+        ? 'Coleta diária concluída.'
+        : 'Execução parcial: progresso salvo. Necessária nova invocação para concluir.',
     };
   } catch (error) {
+    console.error('[DAILY COLLECT] Falha', error);
     await db.runTransaction(async tx => {
       const snap = await tx.get(jobRef);
       if (snap.get('leaseOwner') !== owner) return;
