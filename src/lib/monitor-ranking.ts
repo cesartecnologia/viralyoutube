@@ -2,7 +2,7 @@ import 'server-only';
 import { adminDb } from '@/lib/firebase-admin';
 import { growthFor, type ViewsHistory } from '@/lib/monitor';
 
-type Video = {id:string;title:string;thumbnail:string;publishedAt:string;actualStartTime:string;views:number;growth:number|null};
+type Video = {id:string;title:string;thumbnail:string;publishedAt:string;actualStartTime:string;views:number;growth:number|null;growth24h:number|null;growth7d:number|null;growth30d:number|null};
 type Ranking = {videos:Video[];totalLives:number;totalImported:number;unclassified:number;limited:boolean};
 
 // Materialized view: 1 document read per channel in normal Dashboard requests.
@@ -19,13 +19,22 @@ export async function buildRanking(channelId:string):Promise<void> {
     totalLives++;
     const current=Number(v.views||0);
     const common={id:doc.id,title:String(v.title||''),thumbnail:String(v.thumbnail||''),publishedAt:String(v.publishedAt||''),actualStartTime:String(v.actualStartTime||''),views:current};
+    const history=v.viewHistory as ViewsHistory|undefined;
+    const growth24h=growthFor(history,current,1);
+    const growth7d=growthFor(history,current,7);
+    const growth30d=growthFor(history,current,30);
     for(const days of [1,7,30] as const){
-      groups[String(days)].push({...common,growth:growthFor(v.viewHistory as ViewsHistory|undefined,current,days)});
+      const growth=days===1?growth24h:days===7?growth7d:growth30d;
+      groups[String(days)].push({...common,growth,growth24h,growth7d,growth30d});
     }
   }
   const results:Record<string,Ranking>={};
   for(const days of [1,7,30] as const){
-    const data=groups[String(days)].sort((a,b)=>(b.growth??-Infinity)-(a.growth??-Infinity));
+    const data=groups[String(days)].sort((a,b)=>{
+      if(a.growth===null&&b.growth!==null)return 1;
+      if(a.growth!==null&&b.growth===null)return -1;
+      return (b.growth??0)-(a.growth??0);
+    });
     // 100 is consistent with the existing interface and keeps the Firestore cache document small.
     results[String(days)]={videos:data.slice(0,100),totalLives,totalImported:snap.size,unclassified,limited:snap.size===3000};
   }
