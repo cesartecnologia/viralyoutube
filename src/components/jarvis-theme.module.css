@@ -1,0 +1,28 @@
+/* JARVIS-inspired original HUD theme. Visual-only: no API, auth or Firestore changes. */
+.root { --hud:#5ce7f5; --hud-glow:rgba(51,208,237,.18); background:radial-gradient(ellipse at 95% 0%,rgba(13,111,155,.16),transparent 42%),#060d18!important; color:#e8f4ff!important; min-height:100vh; }
+.root::before { content:"";pointer-events:none;position:fixed;inset:0;z-index:0;opacity:.20;background-image:linear-gradient(rgba(67,183,213,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(67,183,213,.10) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 85%); }
+.root>aside { background:linear-gradient(165deg,#071c2d,#070e1a 75%)!important;border-right:1px solid rgba(67,214,241,.23);box-shadow:12px 0 55px rgba(0,0,0,.18); }
+.root>aside:before {content:"";position:absolute;top:0;right:0;height:2px;width:100%;background:linear-gradient(90deg,transparent,#60e9ff,transparent);box-shadow:0 0 16px rgba(77,210,240,.6)}
+.root>div {position:relative;min-width:0}
+.root header {color:#c7e5f3!important;}
+.root main {position:relative;z-index:1;}
+.root :global(.bg-white),.root :global(.bg-slate-50),.root :global(.bg-indigo-50),.root :global(.bg-blue-50) {background-color:#0d1d2e!important;}
+.root :global(.bg-emerald-50) {background-color:rgba(12,112,112,.17)!important;}
+.root :global(.bg-amber-50) {background-color:rgba(148,96,23,.18)!important;}
+.root :global(.border-slate-200),.root :global(.border-slate-100),.root :global(.border-slate-300) {border-color:rgba(80,186,223,.2)!important;}
+.root :global(.text-slate-900),.root :global(.text-slate-800),.root :global(.text-slate-700) {color:#e3f3fd!important;}
+.root :global(.text-slate-600) {color:#b6cedf!important;}
+.root :global(.text-slate-500),.root :global(.text-slate-400) {color:#8daebf!important;}
+.root :global(.text-indigo-600),.root :global(.text-blue-600),.root :global(.text-indigo-700) {color:#66e9ff!important;}
+.root :global(.bg-indigo-600),.root :global(.bg-blue-600) {background:linear-gradient(120deg,#077ba1,#0aadc5)!important;color:#f4fcff!important;border:1px solid rgba(120,235,249,.35)!important;box-shadow:0 0 20px rgba(21,197,227,.14);}
+.root :global(.bg-emerald-600) {background:linear-gradient(120deg,#007f7b,#04a89e)!important;color:#fff!important;}
+.root :global(.text-emerald-600),.root :global(.text-emerald-700) {color:#50edc7!important;}
+.root :global(.bg-white):is(section,article,div) {box-shadow:0 13px 40px rgba(0,0,0,.12),inset 0 1px 0 rgba(126,223,248,.04);}
+.root :global(input),.root :global(select) {background-color:#0b1b2c!important;color:#dff4ff!important;border-color:rgba(88,193,225,.27)!important;}
+.root :global(input)::placeholder {color:#8199aa!important;}
+.root :global(button):focus-visible,.root :global(a):focus-visible,.root :global(input):focus-visible,.root :global(select):focus-visible {outline:2px solid #64dff6;outline-offset:3px;}
+.root :global(article):hover {border-color:rgba(78,215,245,.42)!important;}
+.root :global(.text-rose-600),.root :global(.text-red-700) {color:#ff9b9b!important;}
+.root :global(.bg-red-50),.root :global(.bg-rose-50) {background:rgba(136,40,63,.17)!important;}
+.root :global(.divide-slate-100)>:not(:last-child) {border-color:rgba(80,186,223,.15)!important;}
+@media(prefers-reduced-motion:no-preference){.root :global(button),.root :global(a){transition:filter .17s ease,border-color .17s ease,background-color .17s ease}.root :global(button):hover{filter:brightness(1.13)}}
