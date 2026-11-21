@@ -44,7 +44,7 @@ export function deriveOpportunities(
         byId.set(row.id, current);
       }
     }
-    for (const live of byId.values()) {
+    for (const live of Array.from(byId.values())) {
       const g1 = live.growth1, g7 = live.growth7;
       // Compare the most recent day with the preceding six days (not the 7-day average including today).
       // Only available when BOTH daily and weekly histories exist.
