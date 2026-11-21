@@ -1,6 +1,6 @@
 'use client';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import Link from 'next/link';
 import { Plus, Trash2, ExternalLink, RefreshCw, Tv2, Users, PlayCircle, ArrowUpRight, AlertCircle, Loader2 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
@@ -8,10 +8,10 @@ import PanelShell from '@/components/panel-shell';
 type Channel={id:string;title:string;thumbnail:string;subscriberCount:number;videoCount:number;importedCount?:number;status:string};
 const fmt=(n:number)=>new Intl.NumberFormat('pt-BR').format(n||0);
 export default function CanaisPage(){
- const [user,setUser]=useState<User|null>(null),[channels,setChannels]=useState<Channel[]>([]),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ const [channels,setChannels]=useState<Channel[]>([]),[url,setUrl]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const request=useCallback(async(path:string,options:RequestInit={})=>{if(!auth.currentUser)throw new Error('Faça login para continuar');const token=await auth.currentUser.getIdToken();const r=await fetch(path,{...options,cache:'no-store',headers:{...options.headers,Authorization:`Bearer ${token}`,...(options.body?{'Content-Type':'application/json'}:{})}});const data=await r.json();if(!r.ok)throw new Error(data.error||`Erro ${r.status}`);return data;},[]);
  const load=useCallback(async()=>{setLoading(true);try{setError('');const data=await request('/api/channels');setChannels(data.channels||[]);}catch(e){setError(e instanceof Error?e.message:'Erro ao carregar canais');}finally{setLoading(false);}},[request]);
- useEffect(()=>{const unsub=onAuthStateChanged(auth,u=>{setUser(u);if(u)void load();else{setLoading(false);setChannels([]);}});return unsub;},[load]);
+ useEffect(()=>{const unsub=onAuthStateChanged(auth,u=>{if(u)void load();else{setLoading(false);setChannels([]);}});return unsub;},[load]);
  async function add(e:FormEvent){e.preventDefault();setBusy(true);setError('');try{await request('/api/channels',{method:'POST',body:JSON.stringify({url:url.trim()})});setUrl('');await load();}catch(e){setError(e instanceof Error?e.message:'Falha ao cadastrar');}finally{setBusy(false);}}
  async function remove(c:Channel){if(!window.confirm(`Remover ${c.title} do monitoramento?`))return;setBusy(true);try{await request(`/api/channels/${c.id}`,{method:'DELETE'});await load();}catch(e){setError(e instanceof Error?e.message:'Falha ao remover');}finally{setBusy(false);}}
  return <PanelShell><main className="mx-auto max-w-[1500px] px-5 py-8 sm:px-8 lg:px-10 lg:py-10"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><div className="mb-3 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-indigo-600"><Tv2 size={14}/> Gestão de fontes</div><h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Meus canais</h1><p className="mt-2 text-sm text-slate-500">Adicione e gerencie os canais acompanhados pelo Viral Monitor.</p></div><button disabled={loading||busy} onClick={()=>void load()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"><RefreshCw size={16} className={loading?'animate-spin':''}/> Atualizar</button></div>

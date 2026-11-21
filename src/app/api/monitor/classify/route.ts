@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
     let confirmed = 0, unknown = 0;
     if (ids.length) {
       const result = await yt('videos',{part:'liveStreamingDetails,snippet,contentDetails',id:ids.join(',')});
-      const byId = new Map<string, any>((result.items || []).map((v:any)=>[v.id,v]));
+      const items = (result.items || []) as Array<{
+        id: string;
+        liveStreamingDetails?: { actualStartTime?: string; actualEndTime?: string };
+      }>;
+      const byId = new Map(items.map(v => [v.id, v] as const));
       const batch = db.batch();
       for (const doc of snap.docs) {
         const video = byId.get(doc.id);

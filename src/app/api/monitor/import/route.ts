@@ -17,7 +17,8 @@ export async function POST(req:NextRequest) {
     await ref.update({importLockUntil:Date.now()+90000});
     try {
       const result=await yt('playlistItems',{part:'snippet,contentDetails',playlistId:channel.uploadsPlaylistId,maxResults:'50',...(channel.importNextPageToken?{pageToken:channel.importNextPageToken}:{})});
-      const ids=(result.items||[]).map((x:any)=>x.contentDetails?.videoId).filter(Boolean);
+      const playlistItems = (result.items || []) as Array<{ contentDetails?: { videoId?: string } }>;
+      const ids = playlistItems.map(x => x.contentDetails?.videoId).filter((id): id is string => typeof id === 'string' && id.length > 0);
       const detail=ids.length?await yt('videos',{part:'snippet,statistics,contentDetails,liveStreamingDetails',id:ids.join(',')}):{items:[]};
       const videos=detail.items||[];
       const batch=db.batch();let lives=0;
